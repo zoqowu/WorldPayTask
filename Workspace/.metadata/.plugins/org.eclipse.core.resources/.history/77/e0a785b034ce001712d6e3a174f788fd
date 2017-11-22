@@ -1,0 +1,6 @@
+package com.worldpay;
+
+public class Database {
+    public static final String offer = "offer.tab";
+    public static final String product = "product.tab";
+}

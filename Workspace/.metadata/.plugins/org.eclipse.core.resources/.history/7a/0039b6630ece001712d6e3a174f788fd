@@ -1,0 +1,117 @@
+package com.worldpay;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import java.util.Date;
+import java.util.Calendar;
+
+@Path("/OfferService")
+public class OfferService {
+	
+   OfferDao offerDao = new OfferDao();
+   private static final String SUCCESS_RESULT="<result>success</result>";
+   private static final String FAILURE_RESULT="<result>failure</result>";
+
+
+   @GET
+   @Path("/offers")
+   @Produces(MediaType.APPLICATION_XML)
+   public List<Offer> getOffers(){
+	  System.out.println("HHHHHHHHHHUUUUUUUUUU");
+      return offerDao.getAllOffers();
+   }
+
+   @GET
+   @Path("/offers/{offerid}")
+   @Produces(MediaType.APPLICATION_XML)
+   public Offer getOffer(@PathParam("offerid") int offerid){
+      return offerDao.getOffer(offerid);
+   }
+
+   @POST
+   @Path("/offers")
+   @Produces(MediaType.APPLICATION_XML)
+   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+   public String createOffer(@FormParam("id") int id,
+      @FormParam("productID") int productID,
+      @FormParam("startDate") long startDate,
+      @FormParam("validPeriod") int validPeriod,
+      @FormParam("isCancelled") boolean isCancelled,
+      @FormParam("offerRate") float offerRate,
+      @Context HttpServletResponse servletResponse) throws IOException{
+      Offer offer = new Offer(id, productID, startDate, 
+    		                         validPeriod, isCancelled, offerRate);
+      int result = offerDao.addOffer(offer);
+      
+      if(result == 1){
+         return SUCCESS_RESULT;
+      }
+      
+      return FAILURE_RESULT;
+   }
+
+   @PUT
+   @Path("/offers")
+   @Produces(MediaType.APPLICATION_XML)
+   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+   public String updateOffer(@FormParam("id") int id,
+      @FormParam("productID") int productID,
+      @FormParam("startDate") long startDate,
+      @FormParam("validPeriod") int validPeriod,
+      @FormParam("isCancelled") boolean isCancelled,
+      @FormParam("offerRate") float offerRate,      
+      @Context HttpServletResponse servletResponse) throws IOException{
+      Offer offer = new Offer(id, productID, startDate, 
+    		                         validPeriod, isCancelled, offerRate);
+      int result = offerDao.updateOffer(offer);
+      
+      if(result == 1){
+         return SUCCESS_RESULT;
+      }
+      
+      return FAILURE_RESULT;
+   }
+   
+   private Date str2Date(String date) {
+	   Calendar cal = Calendar.getInstance();
+	   int year = Integer.parseInt(date.substring(0, 4));
+	   int month = Integer.parseInt(date.substring(4, 6));
+	   int day = Integer.parseInt(date.substring(6));
+	   cal.set(year, month, day);
+	   return cal.getTime();
+   }
+
+   @DELETE
+   @Path("/offers/{offerid}")
+   @Produces(MediaType.APPLICATION_XML)
+   public String deleteOffer(@PathParam("offerid") int offerid){
+      int result = offerDao.deleteOffer(offerid);
+      
+      if(result == 1){
+         return SUCCESS_RESULT;
+      }
+      
+      return FAILURE_RESULT;
+   }
+
+   @OPTIONS
+   @Path("/offers")
+   @Produces(MediaType.APPLICATION_XML)
+   public String getSupportedOperations(){
+      return "<operations>GET, PUT, POST, DELETE</operations>";
+   }
+}

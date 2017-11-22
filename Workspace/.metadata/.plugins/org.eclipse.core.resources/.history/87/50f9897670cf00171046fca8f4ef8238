@@ -1,0 +1,134 @@
+package com.worldpay;
+
+import java.util.List;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+
+public class OfferServiceTester  {
+
+   private Client client;
+   private String REST_SERVICE_URL = "http://localhost:8080/OfferManagement/rest/OfferService/offers";
+   private static final String SUCCESS_RESULT="<result>success</result>";
+   private static final String PASS = "pass";
+   private static final String FAIL = "fail";
+
+   private void init(){
+      this.client = ClientBuilder.newClient();
+   }
+
+   public static void main(String[] args){
+	  OfferServiceTester tester = new OfferServiceTester();
+      //initialize the tester
+      tester.init();
+      //test get all offers Web Service Method
+      tester.testGetAllOffers();
+      //test get offer Web Service Method 
+      tester.testGetOffer();
+      //test update offer Web Service Method
+      tester.testUpdateOffer();
+      //test add offer Web Service Method
+      tester.testAddOffer();
+      //test delete offer Web Service Method
+      tester.testDeleteOffer();
+   }
+   //Test: Get list of all offers
+   //Test: Check if list is not empty
+   private void testGetAllOffers(){
+      GenericType<List<Offer>> list = new GenericType<List<Offer>>() {};
+      List<Offer> offers = client.target(REST_SERVICE_URL).request(MediaType.APPLICATION_XML).get(list);
+      String result = PASS;
+      if(offers.isEmpty()){
+         result = FAIL;
+      }
+      System.out.println("Test case name: testGetAllOffers, Result: " + result );
+   }
+   //Test: Get offer of id 1
+   //Test: Check if offer is same as sample offer
+   private void testGetOffer(){
+      Offer sampleOffer = new Offer();
+      sampleOffer.setId(1);
+
+      Offer offer = client
+         .target(REST_SERVICE_URL)
+         .path("/{offerid}")
+         .resolveTemplate("offerid", 1)
+         .request(MediaType.APPLICATION_XML)
+         .get(Offer.class);
+      String result = FAIL;
+      if(sampleOffer != null && sampleOffer.getId() == offer.getId()){
+         result = PASS;
+      }
+      System.out.println("Test case name: testGetOffer, Result: " + result );
+   }
+   //Test: Update offer of id 1
+   //Test: Check if result is success XML.
+   private void testUpdateOffer(){
+      Form form = new Form();
+      form.param("id", "1");
+      form.param("productID", "1");
+      form.param("startDate", "");
+      form.param("validPeriod", "5");
+      form.param("isCancelled", "false");
+      form.param("offerRate", "0.9");
+
+      String callResult = client
+         .target(REST_SERVICE_URL)
+         .request(MediaType.APPLICATION_XML)
+         .put(Entity.entity(form,
+            MediaType.APPLICATION_FORM_URLENCODED_TYPE),
+            String.class);
+      String result = PASS;
+      if(!SUCCESS_RESULT.equals(callResult)){
+         result = FAIL;
+      }
+
+      System.out.println("Test case name: testUpdateOffer, Result: " + result );
+   }
+   //Test: Add offer of id 2
+   //Test: Check if result is success XML.
+   private void testAddOffer(){
+      Form form = new Form();
+      form.param("id", "3");
+      form.param("productID", "1");
+      form.param("startDate", "");
+      form.param("validPeriod", "5");
+      form.param("isCancelled", "false");
+      form.param("offerRate", "0.9");
+
+      String callResult = client
+         .target(REST_SERVICE_URL)
+         .request(MediaType.APPLICATION_XML)
+         .post(Entity.entity(form,
+            MediaType.APPLICATION_FORM_URLENCODED_TYPE),
+            String.class);
+   
+      String result = PASS;
+      if(!SUCCESS_RESULT.equals(callResult)){
+         result = FAIL;
+      }
+
+      System.out.println("Test case name: testAddOffer, Result: " + result );
+   }
+   //Test: Delete offer of id 1
+   //Test: Check if result is success XML.
+   private void testDeleteOffer(){
+      String callResult = client
+         .target(REST_SERVICE_URL)
+         .path("/{offerid}")
+         .resolveTemplate("offerid", 1)
+         .request(MediaType.APPLICATION_XML)
+         .delete(String.class);
+
+      String result = PASS;
+      if(!SUCCESS_RESULT.equals(callResult)){
+         result = FAIL;
+      }
+
+      System.out.println("Test case name: testDeleteOffer, Result: " + result );
+   }
+}

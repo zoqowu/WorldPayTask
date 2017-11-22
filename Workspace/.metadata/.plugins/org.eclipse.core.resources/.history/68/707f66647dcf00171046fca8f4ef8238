@@ -1,0 +1,135 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<%@ page import="java.util.Date" %>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Insert title here</title>
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+  <link href = "https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" rel = "stylesheet">
+  <script src = "https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script type="text/javascript">
+$(document).ready(function() {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            data = processXMLResponse(xhttp);
+         	updateOfferTable(data);
+        } else
+            console.log("Offer Response - ReadyState: " + this.readyState + "   " + 
+            		                                               "Status: " + this.status);
+    };
+    
+    var url = "http://localhost:8080/OfferManagement/rest/OfferService/offers/false/false";
+    xhttp.open("GET", url, true);
+    xhttp.send(); 
+   
+    var xhttp2 = new XMLHttpRequest();
+    xhttp2.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            products = processXMLResponse(this);
+        } else
+            console.log("Product Response - ReadyState: " + this.readyState + "   " + 
+                                                                    "Status: " + this.status);
+    };
+    
+    xhttp2.open("GET", "http://localhost:8080/OfferManagement/rest/ProductService/products", true);
+    xhttp2.send();     
+} );
+
+function refreshOfferTable() {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            data = processXMLResponse(this);
+         	updateOfferTable(data);
+        } else
+            console.log("Offer Response - ReadyState: " + this.readyState + "   " + 
+            		                                               "Status: " + this.status);
+    };
+    
+    var url = "http://localhost:8080/OfferManagement/rest/OfferService/offers";
+    var cancelled = false;
+    var expired = false;
+    
+   	url = url + '/' + cancelled + '/' + expired;
+   	console.log('Test' + url);
+    xhttp.open("GET", url, true);
+    xhttp.send();  	
+}
+
+function processXMLResponse(xhttp) {
+    var xml1 = (new DOMParser()).parseFromString(xhttp.responseText, "text/xml");
+
+    if(!xml1.hasChildNodes()) 
+    	return null;
+	
+    var xml2 = xml1.childNodes.item(0);
+    
+    if (xml2.hasChildNodes()) {
+		var col = (xml2.childNodes.item(0)).childNodes.length;
+		var data = [];
+		
+		for(var i = 0; i < xml2.childNodes.length; i++){
+			var item = xml2.childNodes.item(i);
+			var row = [];
+			
+			for(var j = 0; j < item.childNodes.length; j++) {
+			   var attr = item.childNodes.item(j);
+			   
+			   if(attr.nodeName == "startDate") {
+				   var t = new Date(parseInt(attr.textContent));
+				   var d = t.getDate() + '-' + (t.getMonth() + 1) + '-' + t.getFullYear();
+				   row.push(d);
+			   } else	   
+			       row.push(attr.textContent);
+			}
+			
+			data.push(row);
+        }
+		
+		return data;
+    } else
+    	return null;
+}
+
+function updateOfferTable(dataSet) {
+	if(typeof(offTable) == 'undefined') {
+        offTable = $('#merchandiseTbl').DataTable( {
+            data: dataSet,
+            columns: [
+                { title: "ID" },
+                { title: "Name" },
+                { title: "Price" },
+                { title: "After Discount" },
+            ]
+        } );
+	} else {
+       offTable.clear().draw();
+       offTable.rows.add(dataSet); // Add new data
+       offTable.columns.adjust().draw(); // Redraw the DataTable		
+	}
+  }
+
+  </script>
+</head>
+<body>
+  <div class="row">
+    <div class="col-sm-2">
+    </div>
+    <div class="col-sm-8">
+        <table id="merchandiseTbl" class="display">
+         <thead></thead>
+         <tbody></tbody>     
+       </table>
+    </div>
+    <div class="col-sm-2">
+    </div>    
+  </div>
+</body>
+</html>

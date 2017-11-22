@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
+		<item value="353" key="DIALOG_WIDTH"/>
+		<item value="256" key="DIALOG_Y_ORIGIN"/>
+		<item value="512" key="DIALOG_HEIGHT"/>
+		<item value="1183" key="DIALOG_X_ORIGIN"/>
+		<item value="1|Segoe UI|9.0|0|WINDOWS|1|-18|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI" key="DIALOG_FONT_NAME"/>
+	</section>
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
+		<item value="false" key="wrap"/>
+		<item value="false" key="isRegEx"/>
+		<item value="true" key="casesensitive"/>
+		<item value="false" key="incremental"/>
+		<item value="false" key="wholeword"/>
+		<item value="selectRow" key="selection"/>
+		<list key="findhistory">
+			<item value="selectRow"/>
+			<item value="updateProductTable"/>
+			<item value="updateInputFields"/>
+			<item value="processXMLResponse"/>
+			<item value="updateOfferTable"/>
+			<item value="updateDataTable"/>
+			<item value="product"/>
+			<item value="example"/>
+		</list>
+		<list key="replacehistory">
+			<item value="updateOfferTable"/>
+			<item value="productTbl"/>
+			<item value="offerTbl"/>
+			<item value="offer"/>
+		</list>
+	</section>
+</section>

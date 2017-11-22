@@ -1,0 +1,5 @@
+package com.worldpay;
+
+public class Database {
+    public final String name = "database.bat";
+}

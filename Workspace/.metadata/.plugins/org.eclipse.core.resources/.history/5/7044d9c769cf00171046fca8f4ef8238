@@ -1,0 +1,340 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<%@ page import="java.util.Date" %>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Insert title here</title>
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+  <link href = "https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" rel = "stylesheet">
+  <script src = "https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script type="text/javascript">
+$(document).ready(function() {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            data = processXMLResponse(xhttp);
+         	updateOfferTable(data);
+        } else
+            console.log("Offer Response - ReadyState: " + this.readyState + "   " + 
+            		                                               "Status: " + this.status);
+    };
+    
+    var url = "http://localhost:8080/OfferManagement/rest/OfferService/offers/false/false";
+    xhttp.open("GET", url, true);
+    xhttp.send(); 
+   
+    var xhttp2 = new XMLHttpRequest();
+    xhttp2.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            products = processXMLResponse(this);
+         	updateProductTable(products);
+        } else
+            console.log("Product Response - ReadyState: " + this.readyState + "   " + 
+                                                                    "Status: " + this.status);
+    };
+    
+    xhttp2.open("GET", "http://localhost:8080/OfferManagement/rest/ProductService/products", true);
+    xhttp2.send();     
+    
+    $(function() {
+        $( "#startDate" ).datepicker({
+        	dateFormat: 'dd-mm-yy'
+        });
+    }); 
+    
+    $('#clearBut').click(function(event) {
+        $('#id').val('');
+        $('#productID').val('');
+        $('#startDate').val('');
+        $('#validPeriod').val('');
+        $('#offerRate').val('');
+        $("#isCancelled").prop("checked", false);
+    });
+    
+    $('#cancelBut').click(function(event) {
+    	var ts = $('#startDate').val();
+    	var td = new Date(); 
+    	td.setFullYear(parseInt(ts.substring(6)), parseInt(ts.substring(3,5))-1,
+    			                                                parseInt(ts.substring(0,2)));
+	
+    	var xhttp = new XMLHttpRequest();
+    	var url = "http://localhost:8080/OfferManagement/rest/OfferService/offers";
+    	var isCancelled = true;
+    	
+    	var params = 'id=' + $('#id').val() +
+    		         '&productID=' + $('#productID').val() +
+    	             '&startDate=' + td.getTime() +
+    	             '&validPeriod=' + $('#validPeriod').val() +
+    	             '&isCancelled=' + isCancelled +
+    	             '&offerRate=' + $('#offerRate').val();
+    	xhttp.open("PUT", url, true);
+
+    	//Send the proper header information along with the request
+    	xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+    	xhttp.onreadystatechange = function() {//Call a function when the state changes.
+    	    if(xhttp.readyState == 4 && xhttp.status == 200) {
+    	        console.log(xhttp.responseText);
+    	        refreshOfferTable();
+    	    }
+    	}
+    	
+    	xhttp.send(params);    	
+    });    	
+    
+    $('#createBut').click(function(event) {
+    	var ts = $('#startDate').val();
+    	var td = new Date(); 
+    	td.setFullYear(parseInt(ts.substring(6)), parseInt(ts.substring(3,5))-1,
+    			                                                parseInt(ts.substring(0,2)));
+	
+    	var xhttp = new XMLHttpRequest();
+    	var url = "http://localhost:8080/OfferManagement/rest/OfferService/offers";
+    	var isCancelled = false;
+    	
+    	if($('#validPeriod:checked').val() == 'on')
+    		isCancelled = true;
+    	
+    	var params = 'id=' + $('#id').val() +
+    		         '&productID=' + $('#productID').val() +
+    	             '&startDate=' + td.getTime() +
+    	             '&validPeriod=' + $('#validPeriod').val() +
+    	             '&isCancelled=' + isCancelled +
+    	             '&offerRate=' + $('#offerRate').val();
+    	xhttp.open("POST", url, true);
+
+    	//Send the proper header information along with the request
+    	xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+    	xhttp.onreadystatechange = function() {//Call a function when the state changes.
+    	    if(xhttp.readyState == 4 && xhttp.status == 200) {
+    	        console.log(xhttp.responseText);
+    	        refreshOfferTable();
+    	    }
+    	}
+    	
+    	xhttp.send(params); 
+    });
+
+    $('#createPro').click(function(event) {
+    	var xhttp = new XMLHttpRequest();
+    	var url = "http://localhost:8080/OfferManagement/rest/ProductService/products";
+    	
+    	var params = 'id=' + $('#pid').val() +
+    		         '&name=' + $('#pName').val() +
+    	             '&price=' + $('#pPrice').val();
+    	xhttp.open("POST", url, true);
+
+    	//Send the proper header information along with the request
+    	xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+    	xhttp.onreadystatechange = function() {//Call a function when the state changes.
+    	    if(xhttp.readyState == 4 && xhttp.status == 200) {
+    	        console.log(xhttp.responseText);
+    	        refreshProductTable();
+    	    }
+    	}
+    	
+    	xhttp.send(params);      	
+    });
+    
+    $('#refreshBut').click(function(event) {
+    	refreshOfferTable();
+    });
+} );
+
+function refreshOfferTable() {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            data = processXMLResponse(this);
+         	updateOfferTable(data);
+        } else
+            console.log("Offer Response - ReadyState: " + this.readyState + "   " + 
+            		                                               "Status: " + this.status);
+    };
+    
+    var url = "http://localhost:8080/OfferManagement/rest/OfferService/offers";
+    var cancelled = false;
+    var expired = false;
+    
+   	if($('#cancelled:checked').val() == 'on')
+		cancelled = true;
+   	
+   	if($('#expired:checked').val() == 'on')
+		expired = true;    	       	
+   	
+   	url = url + '/' + cancelled + '/' + expired;
+   	console.log('Test' + url);
+    xhttp.open("GET", url, true);
+    xhttp.send();  	
+}
+
+function refreshProductTable() {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            data = processXMLResponse(xhttp);
+         	updateOfferTable(data);
+        } else
+            console.log("Product Response - ReadyState: " + this.readyState + "   " + 
+            		                                               "Status: " + this.status);
+    };
+    
+    var url = "http://localhost:8080/OfferManagement/rest/ProductService/products";
+    xhttp.open("GET", url, true);
+    xhttp.send();  	
+}
+
+function processXMLResponse(xhttp) {
+    var xml1 = (new DOMParser()).parseFromString(xhttp.responseText, "text/xml");
+
+    if(!xml1.hasChildNodes()) 
+    	return null;
+	
+    var xml2 = xml1.childNodes.item(0);
+    
+    if (xml2.hasChildNodes()) {
+		var col = (xml2.childNodes.item(0)).childNodes.length;
+		var data = [];
+		
+		for(var i = 0; i < xml2.childNodes.length; i++){
+			var item = xml2.childNodes.item(i);
+			var row = [];
+			
+			for(var j = 0; j < item.childNodes.length; j++) {
+			   var attr = item.childNodes.item(j);
+			   
+			   if(attr.nodeName == "startDate") {
+				   var t = new Date(parseInt(attr.textContent));
+				   var d = t.getDate() + '-' + (t.getMonth() + 1) + '-' + t.getFullYear();
+				   row.push(d);
+			   } else	   
+			       row.push(attr.textContent);
+			}
+			
+			data.push(row);
+        }
+		
+		return data;
+    } else
+    	return null;
+}
+
+function selectRow(oTable, tableID, contents) {
+    var tableTbody = '#' + tableID + ' tbody';
+	var startPosition;
+	var endPosition; 
+   
+	$(tableTbody).on( 'click', 'tr', function () {
+        if ( $(this).hasClass('selected') ) {
+            $(this).removeClass('selected');
+        }
+        else {
+            oTable.$('tr.selected').removeClass('selected');
+            $(this).addClass('selected');
+            var temp =  $(this);
+            var row = contents[temp['context']["_DT_RowIndex"]];
+            updateInputFields(tableID, row);
+        }
+    } );
+}
+
+function updateInputFields(tableID, row) {
+	if(tableID == 'offerTbl') {
+	    $('#id').val(row[0]);
+	    $('#productID').val(row[3]);
+	    $('#startDate').val(row[4]);
+	    $('#validPeriod').val(row[5]);
+	    $('#offerRate').val(row[2]);
+	    
+	    if(row[1] == 'false')
+	    	$("#isCancelled").prop("checked", false);
+	    else
+	    	$("#isCancelled").prop("checked", true);
+	    
+	    return;
+	}
+	
+	if(tableID == 'productTbl') {
+		$('#productID').val(row[0]);
+		return;
+	}
+}
+
+function updateOfferTable(dataSet) {
+	if(typeof(offTable) == 'undefined') {
+        offTable = $('#offerTbl').DataTable( {
+            data: dataSet,
+            columns: [
+                { title: "ID" },
+                { title: "Is Cancelled" },
+                { title: "Offer Rate" },
+                { title: "Product ID" },
+                { title: "Start Date" },
+                { title: "Valid Period" }
+            ]
+        } );
+    
+        selectRow(table, 'offerTbl', dataSet);
+	} else {
+		console.log("Reload data");
+		offTable[data] = dataSet;
+		$('#offerTbl').DataTable().ajax.reload();
+	}
+  }
+  
+function updateProductTable(dataSet) {
+    var table = $('#productTbl').DataTable( {
+        data: dataSet,
+        columns: [
+            { title: "ID" },
+            { title: "Name" },
+            { title: "Price" },
+        ]
+    } );
+    
+    selectRow(table, 'productTbl', dataSet);
+  }  
+
+  </script>
+</head>
+<body>
+  <div class="row">
+    <div class="col-sm-7">
+        <table id="offerTbl" class="display">
+         <thead></thead>
+         <tbody></tbody>     
+       </table>
+       Show Cancelled: <input type = "checkbox" name = "cancelled" id = "cancelled">&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+       Show Expired: <input type = "checkbox" name = "expired" id = "expired"> <br><br>
+       ID: <input type = "text" name = "id" id = "id"><br><br>
+       ProductID: <input type = "text" name = "productID" id = "productID"><br><br>
+       StartDate: <input type = "text" name = "startDate" id = "startDate" readonly><br><br>
+       ValidPeriod: <input type = "text" name = "validPeriod" id = "validPeriod"> days<br><br>
+       IsCancelled: <input type = "checkbox" name = "isCancelled" id = "isCancelled"><br><br>
+       OfferRate: <input type = "text" name = "offerRate" id = "offerRate"><br><br>
+       <button type="button" name = "createBut" id= "createBut">Create</button>&nbsp&nbsp&nbsp
+       <button type="button" name = "cancelBut" id= "cancelBut">Cancel</button>&nbsp&nbsp&nbsp
+       <button type="button" name = "clearBut" id= "clearBut">Clear</button>&nbsp&nbsp&nbsp
+       <button type="button" name = "refreshBut" id= "refreshBut">Refresh</button>
+    </div>
+    <div class="col-sm-5" >
+       <table id="productTbl" class="display">
+         <thead></thead>
+         <tbody></tbody>     
+        </table>
+        Product ID: <input type = "text" name = "pid" id = "pid"><br><br>
+        Name: <input type = "text" name = "pName" id = "pName"><br><br>
+        Price: <input type = "text" name = "pPrice" id = "pPrice"><br><br>
+        <button type="button" name = "createPro" id= "createPro">Create Product</button>
+    </div>
+  </div>
+</body>
+</html>
